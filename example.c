@@ -14,12 +14,12 @@ int main()
     // You can store strings quite easily
     char myString[] = "Example Five";
 
-    list_add(myList, "Example Zero", 13);
-    list_add(myList, "Example One", 12);
-    list_add(myList, "Example Two", 12);
-    list_add(myList, "Example Three", 14);
-    list_add(myList, "Example Four", 13);
-    list_add(myList, myString, strlen(myString));
+    list_addStr(myList, "Example Zero");
+    list_addStr(myList, "Example One");
+    list_addStr(myList, "Example Two");
+    list_addStr(myList, "Example Three");
+    list_addStr(myList, "Example Four");
+    list_addStr(myList, myString);
 
     // Dedicated print and get function for all primary data types.
     list_printStr(myList);
@@ -34,7 +34,7 @@ int main()
     // Easily store integers in the lists too.
     int x;
     for(x=0; x<11; x++)
-        list_add(myList2, &x, sizeof(int));
+        list_addInt(myList2, x);
     
     list_printInt(myList2);
 
@@ -50,7 +50,7 @@ int main()
     // Even easily store floats.
     float y;
     for(y=0; y<1; y=y+0.1)
-        list_add(myList3, &y, sizeof(float));
+        list_addFloat(myList3, y);
     
     list_printFloat(myList3);
 
@@ -63,6 +63,4 @@ int main()
     list_printFloat(myList3);
 
     printf("----- ----- -----\n");
-
-
 }

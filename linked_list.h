@@ -46,6 +46,12 @@ struct List {
     struct Node *tail;
 };
 
+/*################################################
+#
+#           List Creation Functions
+#
+################################################*/
+
 /*  New Node
         Creates and allocates space for a temporary Node structure
         settings all the data to zero or Null.
@@ -105,6 +111,12 @@ int list_add( struct List *list, void *data, size_t dataSize )
     return 0;
 }
 
+/*################################################
+#
+#           List Seek Functions
+#
+################################################*/
+
 /*  Index
         will return the node of passed index.
 
@@ -140,6 +152,29 @@ struct Node* list_index( struct List *list, size_t index )
         return current;
     }
 }
+
+/*  Search
+        Given a list, this will search the data in every node,
+        returning the index if found
+*/
+size_t list_search( struct List *list, void* data, size_t dataSize )
+{
+    struct Node *current = list->head;
+    size_t lowest; size_t count = 0;
+    while(current != NULL) {
+        if(dataSize == current->dataSize)
+            if(!memcmp(current->data, data, dataSize))
+                return count;
+        current = current->next;
+        count++;
+    }
+}
+
+/*################################################
+#
+#           List Removal Functions
+#
+################################################*/
 
 /*  Remove First
         Deletes the first Node in the list.
@@ -247,6 +282,12 @@ int list_close( struct List *list )
     free(list);
 }
 
+/*################################################
+#
+#           List Modifier Functions
+#
+################################################*/
+
 /*  Set
         Sets an existing node of 'x' index to the new data and datasize provided
 
@@ -269,6 +310,101 @@ int list_set( struct List *list, size_t index, void* data, size_t dataSize)
         return 0;
     return 1;
 }
+
+/*################################################
+#
+#           List Debugging Functions
+#
+################################################*/
+
+/* Print Node
+        Prints out the data inside a single node
+
+        Node:       *pointer*
+        DataSize:   *size_t*
+        Next:       *pointer*
+        Prev:       *pointer*
+        Data:       *Raw-Hex*
+*/
+void list_printDetails( struct Node *node )
+{
+    if(node != NULL) {
+        printf("Node:\t\t%p\nDataSize:\t%d\nNext:\t\t%p\nPrev:\t\t%p\nData:\t\t0x", node, node->dataSize, node->next, node->prev);
+        int x;
+        for(x=0; x<node->dataSize; x++)
+            printf("%X ", ((char*)node->data)[x] );
+        printf("\n");
+    }
+
+    else
+        printf("Node NULL\n");
+}
+
+size_t list_length( struct List *list ) {
+    return list->length;
+}
+
+/*################################################
+#
+#           Node Specific Functions
+#
+################################################*/
+
+/*  NODE - Set
+        Sets the data of the node to a what ever the user
+        has passed. Additionally set the dataSize
+*/
+int node_set( struct Node *node, void *data, size_t dataSize )
+{
+    if(node == NULL)
+        return 0;
+    node->data = (void*) realloc(node->data, dataSize);
+    memcpy(node->data, data, dataSize);
+    node->dataSize = dataSize;
+
+    if(node->data == NULL)
+        return 0;
+    return 1;
+}
+
+/*  NODE - Remove
+        Deletes a specific node in a list.
+*/
+int node_remove( struct List *list, struct Node *node )
+{
+    if(node == NULL)
+        return 0;
+
+    struct Node *prev = node->prev;
+    struct Node *next = node->next;
+    free(node->data);
+    free(node);
+    list->length--;
+
+    if(prev != NULL && next != NULL) {
+        prev->next = next;
+        next->prev = prev;
+    }
+    else if(prev == NULL && next == NULL) {
+        list->head = NULL;
+        list->tail = NULL;
+    }
+    else if(prev == NULL) {
+        list->head = next;
+        next->prev = NULL;
+    }
+    else {
+        list->tail = prev;
+        prev->next = NULL;
+    }
+    return 1;
+}
+
+/*################################################
+#
+#           Typing/Casting Functions
+#
+################################################*/
 
 /*  Print{*TYPE*}
         An array of functions that print out the entire list
@@ -310,39 +446,84 @@ void list_printDouble( struct List *list ) {
     } 
 }
 
-/* Print Node
-        Prints out the data inside a single node
-
-        Node:       *pointer*
-        DataSize:   *size_t*
-        Next:       *pointer*
-        Prev:       *pointer*
-        Data:       *Raw-Hex*
+/*  Add{*type*} - wrapper functions
+        A array of functions to easily add different
+        primitive types to the void pointer
 */
-void list_printDetails( struct Node *node )
-{
-    if(node != NULL) {
-        printf("Node:\t\t%p\nDataSize:\t%d\nNext:\t\t%p\nPrev:\t\t%p\nData:\t\t0x", node, node->dataSize, node->next, node->prev);
-        int x;
-        for(x=0; x<node->dataSize; x++)
-            printf("%X ", ((char*)node->data)[x] );
-        printf("\n");
-    }
-
-    else
-        printf("Node NULL\n");
+int list_addInt( struct List *list, int data ) {
+    return list_add(list, &data, sizeof(int));
+}
+int list_addLong( struct List *list, long data ) {
+    return list_add(list, &data, sizeof(long));
+}
+int list_addFloat( struct List *list, float data ) {
+    return list_add(list, &data, sizeof(float));
+}
+int list_addDouble( struct List *list, double data ) {
+    return list_add(list, &data, sizeof(double));
+}
+int list_addStr( struct List *list, char* data ) {
+    return list_add(list, data, strlen(data));
 }
 
-/*  Get 
-        Will get the node at index provided and return 
-        the pointer of the data inside
+/*  Set{*type*} - wrapper functions
+        Lets you set new data in a node of a specific type
 */
-void* list_get( struct List *list, size_t index )
-{
-    struct Node *node = list_index(list, index);
-    if(node != NULL)
-        return node->data;
-    return NULL;
+int list_setInt( struct List *list, size_t index, int data ) {
+    return list_set(list, index, &data, sizeof(int));
+}
+int list_setLong( struct List *list, size_t index, long data ) {
+    return list_set(list, index, &data, sizeof(long));
+}
+int list_setFloat( struct List *list, size_t index, float data ) {
+    return list_set(list, index, &data, sizeof(float));
+}
+int list_setDouble( struct List *list, size_t index, double data ) {
+    return list_set(list, index, &data, sizeof(double));
+}
+int list_setStr( struct List *list, size_t index, char* data ) {
+    return list_set(list, index, data, strlen(data));
+}
+
+/*  NODE - Set{*type*} - wrapper functions
+        sets the data stored to what the user passes, 
+        specific to the data-type called.
+*/
+
+int node_setInt( struct Node *node, int data ) {
+    return node_set(node, &data, sizeof(int));
+}
+int node_setLong( struct Node *node, long data ) {
+    return node_set(node, &data, sizeof(long));
+}
+int node_setFloat( struct Node *node, float data ) {
+    return node_set(node, &data, sizeof(float));
+}
+int node_setDouble( struct Node *node, double data ) {
+    return node_set(node, &data, sizeof(double));
+}
+int node_setStr( struct Node *node, char* data ) {
+    return node_set(node, data, strlen(data));
+}
+
+/*  NODE - Get{*type*}
+        In a Node, returns the value stored
+        in 'data', specified by type
+*/
+int node_getInt( struct Node *node ) {
+    return (int) *((int*) node->data);
+}
+long node_getLong( struct Node *node ) {
+    return (long) *((long*) node->data);
+}
+float node_getFloat( struct Node *node ) {
+    return (float) *((float*) node->data);
+}
+double node_getDouble( struct Node *node ) {
+    return (double) *((double*) node->data);
+}
+char* node_getString( struct Node *node ) {
+    return (char*) node->data;
 }
 
 /*  Get{*type*}
@@ -383,23 +564,6 @@ char* list_getStr( struct Node *node ) {
     }
     perror("Error - Node Empty:");
     return NULL;
-}
-
-/*  Search
-        Given a list, this will search the data in every node,
-        returning the index if found
-*/
-size_t list_search( struct List *list, void* data, size_t dataSize )
-{
-    struct Node *current = list->head;
-    size_t lowest; size_t count = 0;
-    while(current != NULL) {
-        if(dataSize == current->dataSize)
-            if(!memcmp(current->data, data, dataSize))
-                return count;
-        current = current->next;
-        count++;
-    }
 }
 
 #endif

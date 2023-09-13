@@ -1,2 +1,2 @@
 # Linked-List
-An abstracted way to used singly linked lists in C
+An abstracted way to used doubly linked lists in C

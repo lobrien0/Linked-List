@@ -352,6 +352,11 @@ size_t list_length( struct List *list ) {
 #
 ################################################*/
 
+/*  Pop First
+        Deletes the first Node in the list given,
+        then returns the data what was in the deleted node.
+        (It doesn't dealloc the data - ptr that was in node)
+*/
 void* list_popFirst( struct List *list )
 {
     void* dataPtr;
@@ -383,6 +388,11 @@ void* list_popFirst( struct List *list )
     }
 }
 
+/*  Pop Last
+        Deletes the last Node in the list given,
+        then returns the data what was in the deleted node.
+        (It doesn't dealloc the data - ptr that was in node)
+*/
 void* list_popLast( struct List *list )
 {
     void* dataPtr;
@@ -409,6 +419,11 @@ void* list_popLast( struct List *list )
     }
 }
 
+/*  Pop 
+        Deletes the node in the list at the index given,
+        then returns the data what was in the deleted node.
+        (It doesn't dealloc the data - ptr that was in node)
+*/
 void* list_pop( struct List *list, size_t index )
 {
     struct Node *current = list_index(list, index);

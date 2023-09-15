@@ -54,15 +54,17 @@ int main()
     
     list_printFloat(myList3);
 
-    printf("----- Error in Code -----\n");
-    // Functions to close and deallocate the entire list
+    // Deallocates all memory in list, and memory for list itself
+    list_close(myList);
+    list_close(myList2);
     list_close(myList3);
-    
-    // This line causes a segmentation fault because the list no longer exists
-    // We had deallocated all the nodes and the list itself.
-    list_printFloat(myList3);
 
-    printf("----- ----- -----\n");
+    /*  Accessing a list after it's closed
+            If you try and access a list after you've closed it, the behavior is
+            undefined. Most of the time it should give you a segmentation fault,
+            but that is not certain.
+            So please be sure to keep track what you've deallocated and not.
+    */
 
-
+    printf("----- END -----\n");
 }

@@ -145,7 +145,7 @@ struct Node* list_index( struct List *list, size_t index )
     {
         struct Node* current = list->tail;
         size_t reverseIndex = list->length - index;
-        while( current != NULL && count != (list->length - index) ) {
+        while( current != NULL && count != reverseIndex ) {
             current = current->prev;
             count++;
         }
@@ -168,6 +168,7 @@ size_t list_search( struct List *list, void* data, size_t dataSize )
         current = current->next;
         count++;
     }
+    return count;
 }
 
 /*################################################
@@ -235,6 +236,7 @@ int list_removeLast( struct List *list )
 
         free(temp->data);
         free(temp);
+        return 1;
     }
 }
 
@@ -269,7 +271,7 @@ int list_remove( struct List *list, size_t index)
         return list_removeFirst(list);
     // If node is at end of list.
     else
-        return list_removeLast(list);   
+        return list_removeLast(list);
 }
 
 /*  Close
@@ -329,7 +331,7 @@ int list_set( struct List *list, size_t index, void* data, size_t dataSize)
 void list_printDetails( struct Node *node )
 {
     if(node != NULL) {
-        printf("Node:\t\t%p\nDataSize:\t%d\nNext:\t\t%p\nPrev:\t\t%p\nData:\t\t0x", node, node->dataSize, node->next, node->prev);
+        printf("Node:\t\t%p\nDataSize:\t%ld\nNext:\t\t%p\nPrev:\t\t%p\nData:\t\t0x", node, node->dataSize, node->next, node->prev);
         int x;
         for(x=0; x<node->dataSize; x++)
             printf("%X ", ((char*)node->data)[x] );
@@ -342,6 +344,99 @@ void list_printDetails( struct Node *node )
 
 size_t list_length( struct List *list ) {
     return list->length;
+}
+
+/*################################################
+#
+#             Multi-Use Functions
+#
+################################################*/
+
+void* list_popFirst( struct List *list )
+{
+    void* dataPtr;
+
+    // If list is empty.
+    if(list->head == NULL)
+        return NULL;
+
+    // if list is only 1 node.
+    if(list->head->next == NULL)
+    {
+        dataPtr = list->head->data;
+        free(list->head);
+        list->head = NULL;
+        list->tail = NULL;
+        list->length = 0;
+        return dataPtr;
+    }
+    // if list is more than 2 nodes.
+    else
+    {
+        struct Node *temp = list->head;
+        list->head = list->head->next;
+        list->length--;
+
+        dataPtr = temp->data;
+        free(temp);
+        return dataPtr;
+    }
+}
+
+void* list_popLast( struct List *list )
+{
+    void* dataPtr;
+
+    // if list is empty.
+    if(list->head == NULL)
+        return NULL;
+
+    // if list only has 1 node.
+    if(list->head->next == NULL)
+        return list_popFirst(list);
+        
+    // if list has more than two nodes
+    else
+    {
+        struct Node *temp = list->tail;
+        list->tail = list->tail->prev;
+        list->tail->next = NULL;
+        list->length--;
+
+        dataPtr = temp->data;
+        free(temp);
+        return dataPtr;
+    }
+}
+
+void* list_pop( struct List *list, size_t index )
+{
+    struct Node *current = list_index(list, index);
+    void* dataPtr;
+
+    if(current == NULL)
+        return NULL;
+    
+    // gets the nodes before and after current node
+    struct Node *prev = current->prev;
+    struct Node *next = current->next;
+
+    // links the previous and next node together, skipping current node.
+    if(prev != NULL && next != NULL) {
+        prev->next = next;
+        next->prev = prev;
+        list->length--;
+
+        dataPtr = current->data;
+        free(current);
+        return dataPtr;
+    }
+    // If node is at beginning of list.
+    else if(prev == NULL)
+        return list_popFirst(list);
+    // If node is at end of list.
+    else
+        return list_popLast(list);
 }
 
 /*################################################
@@ -413,7 +508,7 @@ int node_remove( struct List *list, struct Node *node )
 void list_printStr( struct List *list ) {
     struct Node *current = list->head;
     while( current != NULL ) {
-        printf("%s\n", current->data);
+        printf("%s\n", (char*) current->data);
         current = current->next; 
     } 
 }
@@ -463,7 +558,7 @@ int list_addDouble( struct List *list, double data ) {
     return list_add(list, &data, sizeof(double));
 }
 int list_addStr( struct List *list, char* data ) {
-    return list_add(list, data, strlen(data));
+    return list_add(list, data, strlen(data)+1);
 }
 
 /*  Set{*type*} - wrapper functions
